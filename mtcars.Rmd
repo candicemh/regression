@@ -1,27 +1,34 @@
 ---
-title: "Motor Trend - Analysis of MPG"
+title: "Motor Trend Car Road Tests - Analysis of Fuel Efficiency"
 author: "Candice MH"
 date: "Sunday, November 09, 2014"
-output: html_document
+output: word_document
 ---
 
-This report describes a linear regression model which predicts mpg based on a number of other predictors. In particular, this report describes the impact of transmission on MPG and whether or not automatic or manual transmissions have lower MPG.
+##Executive Summary
+This report describes a linear regression model which predicts fuel efficiency (miles per US gallon) based on a number of other predictors. In particular, this report describes the impact of transmission on fuel economy and whether or not automatic or manual transmissions have better fuel economy. The report finds that, for vehicles of equal weight and speed (quarter mile time), automatic vehicles should be chosen over manual vehicles if fuel efficiency is a consideration. The author acknowledges the source of the data from <https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html>.
 
-```{r, echo=FALSE}
+##Exploratory Data Analysis
+
+```{r, echo=FALSE, results='hide'}
 attach(mtcars)
+summary(mtcars)
 cor(mtcars)
 ```
 
-```{r}
-summary(mtcars)
-hist(mpg)
+Miles per US gallon (*mpg*) varies between `r min(mpg)` and `r max(mpg)` with a mean of  `r mean(mpg)` and standard deviation equal to  `r sd(mpg)`. *mpg* is displayed in a histogram below, and reveals a distribution that is roughly normal apart from a slight right skew. 
+
+```{r, echo=FALSE}
+hist(mpg,xlab="Miles per Gallon", main="Distribution of fuel efficiency",breaks=10)
 ```
 
-Without accounting for relationships between explanatory variables, the correlation matrix shows us that cyl, disp, hp, wt and carb are all negatively related to MPG, and drat, qsec, vs, am and gear are all negatively related to MPG. The strongest relationship is between weight and MPG. With respect to transmission, the correlation between am and MPG is 0.6. There is a large problem with multicolinearity evident in this data set when the correlation matrix is examined. For example, the cross correlation between cyl and disp is 0.902.
+The explanatory variables available to perform this analysis are *cyl*, *disp*, *hp*, *drat*, *wt*, *qsec*, *vs*, *am*, *gear* and *carb*, where *cyl* is the number of cylinders, *disp* is the displacement, *hp* is the gross horsepower, *drat* is the rear axle ratio, *wt* is measured in thousand pounds, *qsec* is the quarter mile time, *vs* is V/S, *am* is a categorical variable that takes the value 0 for automatic vehicles and 1 for manual vehicles, *gear* is the number of forward gears, and *carb* is the number of carburetors.
 
-Transformation is one approach to mitigating the numerical issues caused by multicolinearity. This data set contains a number of categorical variables (cyl, vs, am and gear) that are not be transformed. The remaining continuous variables (carb, disp, drat, hp, qsec and wt) are standardised in order to mitigate the impact of strong multicolinearity present between the explanatory variables.
+Without accounting for relationships between explanatory variables, the correlation matrix shows us that *cyl*, *disp*, *hp*, *wt* and *carb* are all negatively related to *mpg*, and *drat*, *qsec*, *vs*, *am* and *gear* are all negatively related to *mpg*. The variable with strongest correlation to fuel efficiency is  weight at `r cor(wt, mpg)`. The correlation between transmission and fuel efficiency is `r cor(mpg,am)`. There is a large problem with multicolinearity evident in this data set, illustrated by the cross correlation of  `r cor(cyl,disp)` between cylinders and displacement.
 
-```{r,echo=FALSE}
+Transformation is used to mitigate the numerical issues caused by multicolinearity present between explanatory variables. This data set contains a number of categorical variables (*cyl*, *vs*, *am* and *gear*) that are not be transformed. The remaining continuous variables (*carb*, *disp*, *drat*, *hp*, *qsec* and *wt*) are standardised. These variables are entered into the model with a postscript of 2.
+
+```{r,echo=FALSE, results='hide'}
 disp2<-(disp-mean(disp))/sd(disp)
 hp2<-(hp-mean(hp))/sd(hp)
 drat2<-(drat-mean(drat))/sd(drat)
@@ -31,25 +38,40 @@ carb2<-(carb-mean(carb))/sd(carb)
 model1<-step(lm(mpg~as.factor(cyl)+disp2+hp2+drat2+wt2+qsec2+as.factor(vs)+as.factor(am)+as.factor(gear)+carb2,data=mtcars))
 ```
 
-Stepwise model assessment is used to automate covariate selection. The resultant model is displayed below.
+##Model Selection and Results
+Stepwise model assessment is used to automate covariate selection, thereby fitting multiple models but ultimately selecting the model with the minimal AIC. The resultant model is calculated but suppressed from output. See the appendix for details. 
 
-```{r}
-summary(model1)
+```{r, echo=FALSE, results='hide'}
+temp<-summary.lm(model1)
 ```
 
-Given that wt and qsec were standardised before use in regression, the co-efficients in the model above need to be adjusted so that intuitive interpretation of co-efficients can be done. The new intercept, and slope for wt and qsec, would be as per below.
+The R-squared of the model is `r temp$r.squared` indicating a relatively strong model fit. Only weight, quarter mile time and transmission are significant in predicting fuel efficiency, with p-values<0.05. Analysis of the residuals from this model demonstrates that assumptions of normally distributed errors with constant error variance appears to be met (see appendix). Data are presumed to be independent.
 
-```{r,echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 newint<-model1$coefficients[1]-model1$coefficients[2]*mean(wt)/sd(wt)-model1$coefficients[3]*mean(qsec)/sd(qsec)
 newbeta1<-model1$coefficients[2]/sd(wt)
 newbeta2<-model1$coefficients[3]/sd(qsec)
 ```
 
+##Conclusion
+Co-efficients of weight and quarter mile time have been adjusted to account for the standardisation so that intuitive interpretation of co-efficients can be achieved. For every additional thousand pounds of weight, fuel efficiency declines by `r -1*newbeta1` miles per US gallon, after accounting for the impact of quarter mile time and transmission. For every one second improvement in quarter mile time, fuel efficiency increases by `r newbeta2` miles per US gallon, after accounting for the impact of weight and transmission.
+
+For manual transmission vehicles, after accounting for the impact of weight and quarter mile time, the fuel efficiency in miles per US gallon is `r model1$coefficients[3]` higher than automatic transmission vehicles. For vehicles of equal weight and quarter mile time, automatic transmission  should be chosen if fuel efficiency is a consideration.
+
+##Appendix
+#Data Summary
 ```{r}
-newint
-newbeta1
-newbeta2
+summary(mtcars)
 ```
 
-The interpretation of the model is then as follows:
+#Correlation Analysis
+```{r}
+cor(mtcars)
+```
 
+#Final model - residual checking
+```{r}
+summary(model1)
+plot(model1$fitted,model1$residuals)
+qqnorm(model1$residuals)
+```
