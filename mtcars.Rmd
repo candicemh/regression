@@ -1,0 +1,55 @@
+---
+title: "Motor Trend - Analysis of MPG"
+author: "Candice MH"
+date: "Sunday, November 09, 2014"
+output: html_document
+---
+
+This report describes a linear regression model which predicts mpg based on a number of other predictors. In particular, this report describes the impact of transmission on MPG and whether or not automatic or manual transmissions have lower MPG.
+
+```{r, echo=FALSE}
+attach(mtcars)
+cor(mtcars)
+```
+
+```{r}
+summary(mtcars)
+hist(mpg)
+```
+
+Without accounting for relationships between explanatory variables, the correlation matrix shows us that cyl, disp, hp, wt and carb are all negatively related to MPG, and drat, qsec, vs, am and gear are all negatively related to MPG. The strongest relationship is between weight and MPG. With respect to transmission, the correlation between am and MPG is 0.6. There is a large problem with multicolinearity evident in this data set when the correlation matrix is examined. For example, the cross correlation between cyl and disp is 0.902.
+
+Transformation is one approach to mitigating the numerical issues caused by multicolinearity. This data set contains a number of categorical variables (cyl, vs, am and gear) that are not be transformed. The remaining continuous variables (carb, disp, drat, hp, qsec and wt) are standardised in order to mitigate the impact of strong multicolinearity present between the explanatory variables.
+
+```{r,echo=FALSE}
+disp2<-(disp-mean(disp))/sd(disp)
+hp2<-(hp-mean(hp))/sd(hp)
+drat2<-(drat-mean(drat))/sd(drat)
+wt2<-(wt-mean(wt))/sd(wt)
+qsec2<-(qsec-mean(qsec))/sd(qsec)
+carb2<-(carb-mean(carb))/sd(carb)
+model1<-step(lm(mpg~as.factor(cyl)+disp2+hp2+drat2+wt2+qsec2+as.factor(vs)+as.factor(am)+as.factor(gear)+carb2,data=mtcars))
+```
+
+Stepwise model assessment is used to automate covariate selection. The resultant model is displayed below.
+
+```{r}
+summary(model1)
+```
+
+Given that wt and qsec were standardised before use in regression, the co-efficients in the model above need to be adjusted so that intuitive interpretation of co-efficients can be done. The new intercept, and slope for wt and qsec, would be as per below.
+
+```{r,echo=FALSE}
+newint<-model1$coefficients[1]-model1$coefficients[2]*mean(wt)/sd(wt)-model1$coefficients[3]*mean(qsec)/sd(qsec)
+newbeta1<-model1$coefficients[2]/sd(wt)
+newbeta2<-model1$coefficients[3]/sd(qsec)
+```
+
+```{r}
+newint
+newbeta1
+newbeta2
+```
+
+The interpretation of the model is then as follows:
+
