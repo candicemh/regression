@@ -54,9 +54,9 @@ newbeta2<-model1$coefficients[3]/sd(qsec)
 ```
 
 ##Conclusion
-Co-efficients of weight and quarter mile time have been adjusted to account for the standardisation so that intuitive interpretation of co-efficients can be achieved. For every additional thousand pounds of weight, fuel efficiency declines by `r -1*newbeta1` miles per US gallon, after accounting for the impact of quarter mile time and transmission. For every one second improvement in quarter mile time, fuel efficiency increases by `r newbeta2` miles per US gallon, after accounting for the impact of weight and transmission.
+Co-efficients of weight and quarter mile time have been adjusted to account for the standardisation so that intuitive interpretation of co-efficients can be achieved. For every additional thousand pounds of weight, fuel efficiency declines by `r -1*newbeta1` miles per US gallon (95% CI (`r newbeta1-1.96*sqrt(vcov(model1)[2,2])`, `r newbeta1+1.96*sqrt(vcov(model1)[2,2])`)), after accounting for the impact of quarter mile time and transmission. For every one second improvement in quarter mile time, fuel efficiency increases by `r newbeta2` miles per US gallon (95% CI (`r newbeta2-1.96*sqrt(vcov(model1)[3,3])`, `r newbeta2+1.96*sqrt(vcov(model1)[3,3])`)), after accounting for the impact of weight and transmission.
 
-For manual transmission vehicles, after accounting for the impact of weight and quarter mile time, the fuel efficiency in miles per US gallon is `r model1$coefficients[3]` higher than automatic transmission vehicles. For vehicles of equal weight and quarter mile time, automatic transmission  should be chosen if fuel efficiency is a consideration.
+For manual transmission vehicles, after accounting for the impact of weight and quarter mile time, the fuel efficiency in miles per US gallon is `r model1$coefficients[3]` higher than automatic transmission vehicles (95% CI (`r model1$coef[4]-1.96*sqrt(vcov(model1)[4,4])`, `r model1$coef[4]+1.96*sqrt(vcov(model1)[4,4])`)). For vehicles of equal weight and quarter mile time, automatic transmission  should be chosen if fuel efficiency is a consideration.
 
 ##Appendix
 #Data Summary
